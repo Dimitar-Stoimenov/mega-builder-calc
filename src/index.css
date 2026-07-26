@@ -1,0 +1,77 @@
+:root {
+  --bg: #0f1117;
+  --card: #1a1d27;
+  --card2: #222634;
+  --line: #2e3342;
+  --text: #e7e9ee;
+  --muted: #8b90a0;
+  --accent: #6ea8fe;
+  --green: #2ecc71;
+  --red: #ff6b6b;
+  --amber: #ffc65c;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 860px; margin: 0 auto; padding: 24px 16px 64px; }
+h1 { font-size: 22px; margin: 0 0 4px; }
+.sub { color: var(--muted); font-size: 13px; margin: 0 0 20px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+input, select, textarea {
+  width: 100%; background: var(--card2); color: var(--text);
+  border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; font-size: 14px;
+}
+textarea { resize: vertical; min-height: 60px; font-family: ui-monospace, monospace; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+.row { display: flex; gap: 12px; flex-wrap: wrap; }
+.row > * { flex: 1; min-width: 140px; }
+button {
+  background: var(--accent); color: #08102a; border: 0; border-radius: 8px;
+  padding: 10px 16px; font-size: 14px; font-weight: 600; cursor: pointer;
+}
+button.ghost { background: transparent; color: var(--accent); border: 1px solid var(--line); }
+button:disabled { opacity: 0.5; cursor: default; }
+.verdict { font-size: 20px; font-weight: 700; margin: 4px 0; }
+.taker-lock { color: var(--green); }
+.maker-only { color: var(--amber); }
+.dead, .missing { color: var(--red); }
+.pill { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--card2); color: var(--muted); margin-left: 8px; }
+/* the main builders list */
+.builders { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.builders thead th { text-align: left; color: var(--muted); font-weight: 500; padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 12px; }
+.builders th.num, .builders td.num { text-align: right; width: 1%; white-space: nowrap; }
+.brow td { padding: 9px 14px; border-bottom: 1px solid var(--line); }
+.brow .bname { font-weight: 600; }
+.brow.jewel { border-left: 2px solid var(--amber); }
+.star { color: var(--amber); margin-right: 6px; }
+.brow .blegs { color: var(--muted); font-size: 12.5px; }
+.pill3 { font-size: 10px; margin-left: 6px; padding: 1px 6px; border-radius: 999px; background: var(--card2); color: var(--amber); }
+input.coef { width: 68px; text-align: right; padding: 6px 8px; font-family: ui-monospace, monospace; }
+.brow .edge { font-family: ui-monospace, monospace; font-weight: 700; font-size: 14px; }
+.brow.taker-lock { background: rgba(46, 204, 113, 0.10); }
+.brow.taker-lock .edge { color: var(--green); }
+.brow.maker-only .edge { color: var(--amber); }
+.brow.dead .edge { color: var(--red); }
+.brow.missing .edge { color: var(--amber); }
+button.chip { background: var(--card2); color: var(--muted); padding: 4px 9px; font-size: 12px; font-weight: 600; }
+.detail-row td { padding: 0 14px 14px; background: rgba(0,0,0,0.15); }
+.detail { padding-top: 4px; }
+.mcoef { width: 60px; margin-left: 6px; padding: 4px 6px; font-size: 12px; }
+.legtable { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
+.legtable th { text-align: left; color: var(--muted); font-weight: 500; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.legtable td { padding: 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.legtable select, .legtable input { padding: 5px 7px; font-size: 12px; }
+.mono { font-family: ui-monospace, monospace; }
+.warn { color: var(--amber); font-size: 12px; margin-top: 8px; }
+.err { color: var(--red); font-size: 13px; }
+.illiq { color: var(--amber); font-size: 11px; }
+.decomp { font-size: 13px; color: var(--muted); margin: 8px 0; }
+.decomp b { color: var(--text); }
+a { color: var(--accent); }
