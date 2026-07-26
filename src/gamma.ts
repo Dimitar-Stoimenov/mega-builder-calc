@@ -60,7 +60,10 @@ export async function fetchFixtures(ref: LeagueRef, windowHours = 96): Promise<F
 
   for (let page = 0; page < 20; page++) {
     const url = `${GAMMA}/events?${selector}&active=true&closed=false&limit=100&offset=${page * 100}&order=startDate&ascending=true`;
-    const res = await fetch(url, { headers: { Accept: 'application/json' } });
+    // Gamma sends `cache-control: public, max-age=300`, so the browser would serve a
+    // stale (up to 5-min-old) response when you switch league→back. `no-store` forces
+    // a real network hit every time, so the odds are always live.
+    const res = await fetch(url, { headers: { Accept: 'application/json' }, cache: 'no-store' });
     if (!res.ok) throw new Error(`Gamma ${res.status}`);
     const body = (await res.json()) as unknown;
     const events = (Array.isArray(body) ? body : (body as { data?: unknown[] }).data ?? []) as Array<{ title?: string; markets?: unknown[] }>;
