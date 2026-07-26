@@ -5,6 +5,16 @@ import { computeHedge, type LegOverride, type LegSource, type HedgeResult } from
 
 const pct = (n: number) => `${n >= 0 ? '+' : ''}${n.toFixed(1)}%`;
 
+// Hand-picked display order for the top combos. Listed ids float to the top in this
+// exact order; everything else follows in combos.ts order. (Home/away = team 1/team 2.)
+const PINNED_ORDER = [
+  'btts+over1.5',    // 1 — very top
+  'btts+over2.5',    // 2
+  'homewin+over1.5', // 3 — Win + O1.5, team 1
+  'awaywin+over1.5', // 4 — Win + O1.5, team 2
+  'draw+btts',       // 5
+];
+
 export function App() {
   const [leagueKey, setLeagueKey] = useState('bulgaria');
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
@@ -31,19 +41,24 @@ export function App() {
 
   const fx = fixtures[fxIdx] ?? null;
 
-  // compute every combo's hedge for the selected match; jewels pinned to the top
-  const rows = useMemo(() => [...COMBOS]
-    // jewels first; within jewels, fewer hedge tokens first (single-token = cleanest)
-    .sort((a, b) =>
-      (b.jewel ? 1 : 0) - (a.jewel ? 1 : 0) ||
-      (a.jewel && b.jewel ? a.hedge.length - b.hedge.length : 0))
-    .map((c) => {
+  // compute every combo's hedge for the selected match; a hand-picked order pins the
+  // best combos to the top (independent of the ⭐ jewel flag). Anything not listed here
+  // keeps its combos.ts order, after the pinned ones.
+  const rows = useMemo(() => {
+    const rank = (id: string) => { const i = PINNED_ORDER.indexOf(id); return i === -1 ? PINNED_ORDER.length : i; };
+    return COMBOS
+      // stable: pinned by their PINNED_ORDER index; unpinned keep original combos.ts order.
+      .map((c, i) => ({ c, i }))
+      .sort((a, b) => rank(a.c.id) - rank(b.c.id) || a.i - b.i)
+      .map(({ c }) => c)
+      .map((c) => {
       const coef = parseFloat(coefs[c.id] ?? '');
       const res: HedgeResult | null = fx && Number.isFinite(coef) && coef > 1
         ? computeHedge(c, fx, coef, overrides[c.id] ?? {})
         : null;
       return { combo: c, res };
-    }), [fx, coefs, overrides]);
+    });
+  }, [fx, coefs, overrides]);
 
   const setCoef = (id: string, v: string) => setCoefs((c) => ({ ...c, [id]: v }));
   const setSource = (comboId: string, legId: string, source: LegSource) =>
