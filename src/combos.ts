@@ -113,6 +113,7 @@ const exact = (H: number, A: number): HedgeToken => ({ id: `${H}-${A}`, label: `
 export const COMBOS: Combo[] = [
   {
     id: 'btts+over2.5',
+    jewel: true,
     legs: ['BTTS: Yes', 'Total Goals: Over 2.5'],
     legCount: 2,
     winPred: (s) => btts(s) && over(2.5)(s),
@@ -122,7 +123,6 @@ export const COMBOS: Combo[] = [
   {
     id: 'btts+over1.5',
     label: 'BTTS + O1.5',
-    jewel: true,
     legs: ['BTTS: Yes', 'Total Goals: Over 1.5'],
     legCount: 2,
     // THE cleanest jewel: BTTS ⇒ ≥2 goals, so Over 1.5 can NEVER fail — it's a pure
@@ -152,6 +152,7 @@ export const COMBOS: Combo[] = [
   },
   {
     id: 'draw+btts',
+    jewel: true,
     legs: ['Result: Draw', 'BTTS: Yes'],
     legCount: 2,
     // draw & both score = 1-1, 2-2, 3-3, … Loses on: No-Draw ∪ 0-0 (only draw with no BTTS).
@@ -162,7 +163,6 @@ export const COMBOS: Combo[] = [
   {
     id: 'draw+btts+over1.5',
     label: 'Draw + BTTS + O1.5',
-    jewel: true,
     legs: ['Result: Draw', 'BTTS: Yes', 'Total Goals: Over 1.5'],
     legCount: 3,
     // Draw+BTTS already ⇒ ≥2 goals, so Over 1.5 is redundant. A 3-leg workaround for the
@@ -294,7 +294,6 @@ export const COMBOS: Combo[] = [
   {
     id: 'over1.5+over2.5',
     label: 'Over 1.5 + Over 2.5',
-    jewel: true,
     legs: ['Total Goals: Over 1.5', 'Total Goals: Over 2.5'],
     legCount: 2,
     // Over 2.5 ⊂ Over 1.5 → collapses to Over 2.5. Legal nested-totals trick for a fat 2/3-leg coef.
