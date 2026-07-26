@@ -123,6 +123,7 @@ export const COMBOS: Combo[] = [
   {
     id: 'btts+over1.5',
     label: 'BTTS + O1.5',
+    jewel: true,
     legs: ['BTTS: Yes', 'Total Goals: Over 1.5'],
     legCount: 2,
     // THE cleanest jewel: BTTS ⇒ ≥2 goals, so Over 1.5 can NEVER fail — it's a pure
@@ -182,6 +183,7 @@ export const COMBOS: Combo[] = [
   },
   {
     id: 'homewin+over1.5',
+    jewel: true,
     legs: ['Home Win', 'Total Goals: Over 1.5'],
     legCount: 2,
     // home win with ≥2 goals. Loses on: not-home-win ∪ 1-0 (only home win under 2 goals).
@@ -191,6 +193,7 @@ export const COMBOS: Combo[] = [
   },
   {
     id: 'awaywin+over1.5',
+    jewel: true,
     legs: ['Away Win', 'Total Goals: Over 1.5'],
     legCount: 2,
     winPred: (s) => awayWin(s) && over(1.5)(s),
