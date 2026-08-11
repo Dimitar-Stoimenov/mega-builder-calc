@@ -16,6 +16,7 @@ export type LeagueRef = { tag: number } | { series: number };
 
 /** Known leagues (mirrors poly-odds-board). Series-only ones use `series`. */
 export const LEAGUES: Record<string, LeagueRef & { label: string }> = {
+  supercup: { tag: 105616, label: 'UEFA Super Cup' },
   ucl: { tag: 100977, label: 'Champions League' },
   uel: { tag: 101787, label: 'Europa League' },
   ecl: { tag: 102763, label: 'Conference League' },

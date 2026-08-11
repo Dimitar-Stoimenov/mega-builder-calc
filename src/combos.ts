@@ -97,6 +97,7 @@ const yesDraw: HedgeToken = { id: 'draw', label: 'Draw = Yes', market: { kind: '
 const noHomeWin: HedgeToken = { id: 'no-home', label: 'Home Win = No', market: { kind: 'win', team: 'home', side: 'no' }, pays: (s) => !homeWin(s) };
 const noAwayWin: HedgeToken = { id: 'no-away', label: 'Away Win = No', market: { kind: 'win', team: 'away', side: 'no' }, pays: (s) => !awayWin(s) };
 const yesAwayWin: HedgeToken = { id: 'away-win', label: 'Away Win = Yes', market: { kind: 'win', team: 'away', side: 'yes' }, pays: awayWin };
+const yesHomeWin: HedgeToken = { id: 'home-win', label: 'Home Win = Yes', market: { kind: 'win', team: 'home', side: 'yes' }, pays: homeWin };
 // Win-to-nil = a team wins with a clean sheet. This is the ONLY clean way to cover the
 // "home wins, opponent scores 0" region: it partitions DISJOINTLY from Win-No (one is
 // "home doesn't win", the other is "home wins to nil" — no overlap). We deliberately do
@@ -210,6 +211,15 @@ export const COMBOS: Combo[] = [
     note: 'Loses on Not-Home-Win, 1-0, or 2-0 (2-1 is a win — 3 goals). Buy Home-Win-No + 1-0 + 2-0.',
   },
   {
+    id: 'awaywin+over2.5',
+    legs: ['Away Win', 'Total Goals: Over 2.5'],
+    legCount: 2,
+    // Mirror of HomeWin+O2.5. Away wins under 3 goals = 0-1, 0-2. (1-2 = 3 goals = win.)
+    winPred: (s) => awayWin(s) && over(2.5)(s),
+    hedge: [noAwayWin, exact(0, 1), exact(0, 2)],
+    note: 'Loses on Not-Away-Win, 0-1, or 0-2 (1-2 is a win — 3 goals). Buy Away-Win-No + 0-1 + 0-2.',
+  },
+  {
     id: 'homewin+btts+over1.5',
     label: 'Home Win + BTTS + O1.5',
     legs: ['Home Win', 'BTTS: Yes', 'Total Goals: Over 1.5'],
@@ -260,6 +270,15 @@ export const COMBOS: Combo[] = [
     note: 'Loses on Away-Win or 0-0. Buy Away-Win (Yes) + 0-0.',
   },
   {
+    id: 'x2+over0.5',
+    legs: ['Double Chance: Draw or Away (X2)', 'Total Goals: Over 0.5'],
+    legCount: 2,
+    // Mirror of 1X+O0.5. X2 = away doesn't lose (a ≥ h). With ≥1 goal. Loses on: home-win ∪ 0-0.
+    winPred: (s) => s.a >= s.h && over(0.5)(s),
+    hedge: [yesHomeWin, exact(0, 0)],
+    note: 'Loses on Home-Win or 0-0. Buy Home-Win (Yes) + 0-0.',
+  },
+  {
     id: '12+over1.5',
     legs: ['Double Chance: Home or Away (12, no draw)', 'Total Goals: Over 1.5'],
     legCount: 2,
@@ -293,6 +312,14 @@ export const COMBOS: Combo[] = [
     winPred: (s) => homeWin(s) && over(2.5)(s) && teamOver('home', 0.5)(s),
     hedge: [noHomeWin, exact(1, 0), exact(2, 0)],
     note: '3-leg version of HomeWin+O2.5 (Home-O0.5 implied). Same hedge: Home-Win-No + 1-0 + 2-0.',
+  },
+  {
+    id: 'awaywin+over2.5+awayover0.5',
+    legs: ['Away Win', 'Total Goals: Over 2.5', 'Away Total: Over 0.5'],
+    legCount: 3,
+    winPred: (s) => awayWin(s) && over(2.5)(s) && teamOver('away', 0.5)(s),
+    hedge: [noAwayWin, exact(0, 1), exact(0, 2)],
+    note: '3-leg version of AwayWin+O2.5 (Away-O0.5 implied). Same hedge: Away-Win-No + 0-1 + 0-2.',
   },
   {
     id: 'over1.5+over2.5',
