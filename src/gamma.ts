@@ -17,6 +17,18 @@ export type LeagueRef = { tag: number } | { series: number };
 /** Known leagues (mirrors poly-odds-board). Series-only ones use `series`. */
 export const LEAGUES: Record<string, LeagueRef & { label: string }> = {
   supercup: { tag: 105616, label: 'UEFA Super Cup' },
+  // Big-league tags (2026-08-15, verified live): la-liga=780 (97 in-window match
+  // titles), epl=306. NB Gamma's premier-league tag (82) carries the SAME events as
+  // 306 — one ref is enough.
+  laliga: { tag: 780, label: 'Spain La Liga' },
+  epl: { tag: 306, label: 'England Premier League' },
+  // Tags read OFF live fixtures 2026-08-15 (slug lookup misses ligue-1/serie-a;
+  // the slug-found "bundesliga"=1494 is outrights-only, so no Bundesliga yet).
+  ligue1: { tag: 102070, label: 'France Ligue 1' },
+  seriea: { tag: 101962, label: 'Italy Serie A' },
+  championship: { tag: 102643, label: 'England Championship' },
+  carabao: { tag: 102525, label: 'England EFL Cup (Carabao)' },
+  facup: { tag: 101807, label: 'England FA Cup' },
   ucl: { tag: 100977, label: 'Champions League' },
   uel: { tag: 101787, label: 'Europa League' },
   ecl: { tag: 102763, label: 'Conference League' },
