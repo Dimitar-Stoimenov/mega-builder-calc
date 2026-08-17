@@ -25,6 +25,8 @@ export const LEAGUES: Record<string, LeagueRef & { label: string }> = {
   // Tags read OFF live fixtures 2026-08-15 (slug lookup misses ligue-1/serie-a;
   // the slug-found "bundesliga"=1494 is outrights-only, so no Bundesliga yet).
   ligue1: { tag: 102070, label: 'France Ligue 1' },
+  bundesliga: { tag: 1494, label: 'Germany Bundesliga' },
+  dfbpokal: { tag: 102154, label: 'Germany DFB-Pokal' },
   seriea: { tag: 101962, label: 'Italy Serie A' },
   championship: { tag: 102643, label: 'England Championship' },
   carabao: { tag: 102525, label: 'England EFL Cup (Carabao)' },
