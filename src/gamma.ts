@@ -34,6 +34,9 @@ export const LEAGUES: Record<string, LeagueRef & { label: string }> = {
   ucl: { tag: 100977, label: 'Champions League' },
   uel: { tag: 101787, label: 'Europa League' },
   ecl: { tag: 102763, label: 'Conference League' },
+  // Verified live 2026-09-24: 81 of the first 100 open events on this tag are "X vs. Y" fixtures
+  // (e.g. Netherlands vs. Germany), plus their Halftime / Second Half companion events.
+  nationsleague: { tag: 100816, label: 'UEFA Nations League' },
   denmark: { tag: 102652, label: 'Denmark Superliga' },
   sweden: { tag: 104930, label: 'Sweden Allsvenskan' },
   norway: { tag: 102651, label: 'Norway Eliteserien' },
