@@ -8,11 +8,10 @@ const pct = (n: number) => `${n >= 0 ? '+' : ''}${n.toFixed(1)}%`;
 // Hand-picked display order for the top combos. Listed ids float to the top in this
 // exact order; everything else follows in combos.ts order. (Home/away = team 1/team 2.)
 const PINNED_ORDER = [
-  'btts+over1.5',    // 1 — very top
-  'btts+over2.5',    // 2
-  'homewin+over1.5', // 3 — Win + O1.5, team 1
-  'awaywin+over1.5', // 4 — Win + O1.5, team 2
-  'draw+btts',       // 5
+  'btts+over2.5',    // 1 — very top (BTTS + O1.5 is bookie-blocked since 2026-10-11)
+  'homewin+over1.5', // 2 — Win + O1.5, team 1
+  'awaywin+over1.5', // 3 — Win + O1.5, team 2
+  'draw+btts',       // 4
 ];
 
 export function App() {

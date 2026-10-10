@@ -52,7 +52,7 @@ describe('computeHedge — BTTS + O2.5', () => {
   });
 
   it('warns when a 3-leg boosted coef is under 3.00', () => {
-    const three = byId['draw+btts+over1.5'];
+    const three = byId['draw+over3.5+btts'];
     const r = computeHedge(three, null, 2.5); // no fixture -> missing, but the warning still computes
     expect(r.coefWarning).toMatch(/3-leg/);
   });

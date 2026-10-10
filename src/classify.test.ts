@@ -35,8 +35,19 @@ describe('classify — free legs -> combo (order-independent)', () => {
   });
 
   it('classifies the 3-leg workarounds', () => {
-    expect((classify(['Draw', 'BTTS', 'Over 1.5']) as any).combo?.id).toBe('draw+btts+over1.5');
+    expect((classify(['Draw', 'Over 3.5', 'BTTS']) as any).combo?.id).toBe('draw+over3.5+btts');
     expect((classify(['Draw', 'home over 0.5', 'away over 0.5']) as any).combo?.id).toBe('draw+teamover0.5x2');
+  });
+
+  it('bookie-BLOCKED goal combos are gone from the library (user 2026-10-11: BTTS+O1.5, O1.5+O2.5, team O0.5+O1.5)', () => {
+    for (const legs of [
+      ['BTTS', 'Over 1.5'], ['Draw', 'BTTS', 'Over 1.5'], ['Home Win', 'BTTS', 'Over 1.5'], ['Away Win', 'BTTS', 'Over 1.5'],
+      ['BTTS', 'Over 2.5', 'Over 1.5'], ['Over 1.5', 'Over 2.5'],
+      ['Home Win', 'Over 1.5', 'home over 0.5'], ['Away Win', 'Over 1.5', 'away over 0.5'],
+    ]) {
+      const r = classify(legs);
+      expect(r.ok, legs.join(' + ')).toBe(false);
+    }
   });
 
   it('EVERY library combo classifies back to itself from its own legs', () => {

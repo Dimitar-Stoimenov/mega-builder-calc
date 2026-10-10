@@ -105,7 +105,6 @@ const yesHomeWin: HedgeToken = { id: 'home-win', label: 'Home Win = Yes', market
 // (a trap: easy to mis-size and think you're locked when you're not).
 const homeWTN: HedgeToken = { id: 'home-wtn', label: 'Home Win to Nil', market: { kind: 'winToNil', team: 'home' }, pays: ({ h, a }) => h > a && a === 0 };
 const awayWTN: HedgeToken = { id: 'away-wtn', label: 'Away Win to Nil', market: { kind: 'winToNil', team: 'away' }, pays: ({ h, a }) => a > h && h === 0 };
-const under = (line: string): HedgeToken => ({ id: `under-${line}`, label: `Under ${line}`, market: { kind: 'ou', line, side: 'under' }, pays: (s) => !over(parseFloat(line))(s) });
 const exact = (H: number, A: number): HedgeToken => ({ id: `${H}-${A}`, label: `Exact ${H}-${A}`, market: { kind: 'exact', h: H, a: A }, pays: exactP(H, A) });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -120,30 +119,6 @@ export const COMBOS: Combo[] = [
     winPred: (s) => btts(s) && over(2.5)(s),
     hedge: [noBtts, exact(1, 1)],
     note: 'Loses on No-BTTS or 1-1 (the only both-score score under 3 goals).',
-  },
-  {
-    id: 'btts+over2.5+over1.5',
-    label: 'BTTS + O2.5 + O1.5',
-    legs: ['BTTS: Yes', 'Total Goals: Over 2.5', 'Total Goals: Over 1.5'],
-    legCount: 3,
-    // Over 1.5 is implied twice over (by BTTS and by Over 2.5). 3-leg coef-rule workaround
-    // that hedges IDENTICALLY to BTTS+O2.5.
-    winPred: (s) => btts(s) && over(2.5)(s) && over(1.5)(s),
-    hedge: [noBtts, exact(1, 1)],
-    note: '3-leg version of BTTS+O2.5 (Over 1.5 is implied by both other legs). Same hedge: BTTS-No + 1-1.',
-  },
-  {
-    id: 'btts+over1.5',
-    label: 'BTTS + O1.5',
-    jewel: true,
-    legs: ['BTTS: Yes', 'Total Goals: Over 1.5'],
-    legCount: 2,
-    // THE cleanest jewel: BTTS ⇒ ≥2 goals, so Over 1.5 can NEVER fail — it's a pure
-    // boost-freebie leg. Collapses to just BTTS. Single-token hedge (BTTS-No), a deep
-    // liquid market on every game. The bookie boosts it as a 2-leg but the real risk is 1.
-    winPred: (s) => btts(s) && over(1.5)(s),
-    hedge: [noBtts],
-    note: 'Over 1.5 is implied by BTTS — a free boosted leg. Single-token hedge: buy BTTS-No.',
   },
   {
     id: 'btts+teamover0.5x2',
@@ -199,17 +174,6 @@ export const COMBOS: Combo[] = [
     note: 'A draw where both score can only be 1-1/2-2/… Loses on No-Draw or 0-0. Buy Draw-No + 0-0.',
   },
   {
-    id: 'draw+btts+over1.5',
-    label: 'Draw + BTTS + O1.5',
-    legs: ['Result: Draw', 'BTTS: Yes', 'Total Goals: Over 1.5'],
-    legCount: 3,
-    // Draw+BTTS already ⇒ ≥2 goals, so Over 1.5 is redundant. A 3-leg workaround for the
-    // ≥3.00 coef rule that hedges identically to Draw+BTTS.
-    winPred: (s) => draw(s) && btts(s) && over(1.5)(s),
-    hedge: [noDraw, exact(0, 0)],
-    note: '3-leg version of Draw+BTTS (Over 1.5 is implied). Same hedge: Draw-No + 0-0.',
-  },
-  {
     id: 'draw+teamover0.5x2',
     legs: ['Result: Draw', 'Home Total: Over 0.5', 'Away Total: Over 0.5'],
     legCount: 3,
@@ -254,29 +218,6 @@ export const COMBOS: Combo[] = [
     winPred: (s) => awayWin(s) && over(2.5)(s),
     hedge: [noAwayWin, exact(0, 1), exact(0, 2)],
     note: 'Loses on Not-Away-Win, 0-1, or 0-2 (1-2 is a win — 3 goals). Buy Away-Win-No + 0-1 + 0-2.',
-  },
-  {
-    id: 'homewin+btts+over1.5',
-    label: 'Home Win + BTTS + O1.5',
-    legs: ['Home Win', 'BTTS: Yes', 'Total Goals: Over 1.5'],
-    legCount: 3,
-    // A home win where both teams score is ALWAYS ≥3 goals (min 2-1), so BOTH Over 1.5
-    // and Over 2.5 are redundant boost-freebie legs → collapses to Home Win + BTTS.
-    // Loses on the DISJOINT union: Not-Home-Win ∪ Home-Win-to-Nil. Requires the Poly
-    // "win to nil" market; if it's missing this combo shows as not-hedgeable (we do NOT
-    // fall back to team-Under-0.5, which overlaps 0-0 and muddies sizing).
-    winPred: (s) => homeWin(s) && btts(s) && over(1.5)(s),
-    hedge: [noHomeWin, homeWTN],
-    note: 'Over 1.5 is implied (win+BTTS ⇒ ≥3 goals) — a free boosted leg. Loses on Not-Home-Win or Home Win-to-Nil (disjoint). Buy Home-Win-No + Home-Win-to-Nil.',
-  },
-  {
-    id: 'awaywin+btts+over1.5',
-    label: 'Away Win + BTTS + O1.5',
-    legs: ['Away Win', 'BTTS: Yes', 'Total Goals: Over 1.5'],
-    legCount: 3,
-    winPred: (s) => awayWin(s) && btts(s) && over(1.5)(s),
-    hedge: [noAwayWin, awayWTN],
-    note: 'Over 1.5 is implied (win+BTTS ⇒ ≥3 goals) — a free boosted leg. Loses on Not-Away-Win or Away Win-to-Nil (disjoint). Buy Away-Win-No + Away-Win-to-Nil.',
   },
   {
     id: 'homewin+btts+over2.5',
@@ -365,24 +306,6 @@ export const COMBOS: Combo[] = [
     note: 'Loses on Draw, 1-0, or 0-1. Buy Draw (Yes) + 1-0 + 0-1.',
   },
   {
-    id: 'homewin+over1.5+homeover0.5',
-    legs: ['Home Win', 'Total Goals: Over 1.5', 'Home Total: Over 0.5'],
-    legCount: 3,
-    // "Home over 0.5" is implied by a home win (h > a ⇒ h ≥ 1). 3-leg coef-rule
-    // workaround that hedges IDENTICALLY to HomeWin+O1.5 but at a fatter ≥3.00 coef.
-    winPred: (s) => homeWin(s) && over(1.5)(s) && teamOver('home', 0.5)(s),
-    hedge: [noHomeWin, exact(1, 0)],
-    note: '3-leg version of HomeWin+O1.5 (Home-O0.5 is implied by the win). Same hedge: Home-Win-No + 1-0.',
-  },
-  {
-    id: 'awaywin+over1.5+awayover0.5',
-    legs: ['Away Win', 'Total Goals: Over 1.5', 'Away Total: Over 0.5'],
-    legCount: 3,
-    winPred: (s) => awayWin(s) && over(1.5)(s) && teamOver('away', 0.5)(s),
-    hedge: [noAwayWin, exact(0, 1)],
-    note: '3-leg version of AwayWin+O1.5 (Away-O0.5 implied). Same hedge: Away-Win-No + 0-1.',
-  },
-  {
     id: 'homewin+over2.5+homeover0.5',
     legs: ['Home Win', 'Total Goals: Over 2.5', 'Home Total: Over 0.5'],
     legCount: 3,
@@ -397,16 +320,6 @@ export const COMBOS: Combo[] = [
     winPred: (s) => awayWin(s) && over(2.5)(s) && teamOver('away', 0.5)(s),
     hedge: [noAwayWin, exact(0, 1), exact(0, 2)],
     note: '3-leg version of AwayWin+O2.5 (Away-O0.5 implied). Same hedge: Away-Win-No + 0-1 + 0-2.',
-  },
-  {
-    id: 'over1.5+over2.5',
-    label: 'Over 1.5 + Over 2.5',
-    legs: ['Total Goals: Over 1.5', 'Total Goals: Over 2.5'],
-    legCount: 2,
-    // Over 2.5 ⊂ Over 1.5 → collapses to Over 2.5. Legal nested-totals trick for a fat 2/3-leg coef.
-    winPred: (s) => over(1.5)(s) && over(2.5)(s),
-    hedge: [under('2.5')],
-    note: 'Over 1.5 is implied by Over 2.5 → just Over 2.5. Buy Under 2.5.',
   },
 ];
 
