@@ -44,6 +44,7 @@ describe('classify — free legs -> combo (order-independent)', () => {
       ['BTTS', 'Over 1.5'], ['Draw', 'BTTS', 'Over 1.5'], ['Home Win', 'BTTS', 'Over 1.5'], ['Away Win', 'BTTS', 'Over 1.5'],
       ['BTTS', 'Over 2.5', 'Over 1.5'], ['Over 1.5', 'Over 2.5'],
       ['Home Win', 'Over 1.5', 'home over 0.5'], ['Away Win', 'Over 1.5', 'away over 0.5'],
+      ['BTTS', 'home over 0.5', 'away over 0.5'], // also blocked (user 2026-10-11); Draw + both teams O0.5 still works
     ]) {
       const r = classify(legs);
       expect(r.ok, legs.join(' + ')).toBe(false);

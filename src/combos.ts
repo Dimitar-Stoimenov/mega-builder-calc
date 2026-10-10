@@ -121,19 +121,6 @@ export const COMBOS: Combo[] = [
     note: 'Loses on No-BTTS or 1-1 (the only both-score score under 3 goals).',
   },
   {
-    id: 'btts+teamover0.5x2',
-    label: 'BTTS + Home O0.5 + Away O0.5',
-    legs: ['BTTS: Yes', 'Home Total: Over 0.5', 'Away Total: Over 0.5'],
-    legCount: 3,
-    // The 3-leg form of the cleanest jewel: "both teams over 0.5" IS BTTS, stated three
-    // ways. All three legs are the SAME event, so the bookie multiplies three correlated
-    // prices as if independent — the biggest coef-vs-true-risk gap in the library — while
-    // the real risk stays one leg. Single-token hedge (BTTS-No), deep on every game.
-    winPred: (s) => btts(s) && teamOver('home', 0.5)(s) && teamOver('away', 0.5)(s),
-    hedge: [noBtts],
-    note: 'All three legs are the same event (both teams score). Bookie prices them as independent; real risk is one leg. Single-token hedge: buy BTTS-No.',
-  },
-  {
     id: 'draw+over3.5',
     legs: ['Result: Draw', 'Total Goals: Over 3.5'],
     legCount: 2,

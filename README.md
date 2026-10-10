@@ -14,7 +14,7 @@ No server — the page fetches Polymarket's Gamma API directly (CORS is `*`). De
 ```bash
 npm install
 npm run dev      # http://localhost:5173
-npm test         # 130 tests (combo grid-verification, classify, hedge math)
+npm test         # 125 tests (combo grid-verification, classify, hedge math)
 npm run build    # type-check + static build to dist/
 ```
 
