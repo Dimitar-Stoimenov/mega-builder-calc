@@ -39,6 +39,16 @@ describe('classify — free legs -> combo (order-independent)', () => {
     expect((classify(['Draw', 'home over 0.5', 'away over 0.5']) as any).combo?.id).toBe('draw+teamover0.5x2');
   });
 
+  it('reads Under and BTTS-No legs (2026-10-11 additions) and classifies the new combos', () => {
+    expect(parseLeg('Under 2.5')).toEqual({ t: 'under', line: 2.5 });
+    expect(parseLeg('BTTS No')).toEqual({ t: 'bttsNo' });
+    expect(parseLeg('Both teams to score: No')).toEqual({ t: 'bttsNo' });
+    expect(parseLeg('BTTS')).toEqual({ t: 'btts' });
+    expect((classify(['Home Win', 'Under 2.5']) as any).combo?.id).toBe('homewin+under2.5');
+    expect((classify(['Over 2.5', 'BTTS No']) as any).combo?.id).toBe('over2.5+bttsno');
+    expect((classify(['12', 'BTTS', 'away over 0.5']) as any).combo?.id).toBe('12+btts+awayover0.5');
+  });
+
   it('bookie-BLOCKED goal combos are gone from the library (user 2026-10-11: BTTS+O1.5, O1.5+O2.5, team O0.5+O1.5)', () => {
     for (const legs of [
       ['BTTS', 'Over 1.5'], ['Draw', 'BTTS', 'Over 1.5'], ['Home Win', 'BTTS', 'Over 1.5'], ['Away Win', 'BTTS', 'Over 1.5'],

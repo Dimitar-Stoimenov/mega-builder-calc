@@ -12,16 +12,21 @@ import { COMBOS, type Combo, type Score } from './combos.ts';
 /** A canonical leg token. */
 export type Leg =
   | { t: 'btts' }
+  | { t: 'bttsNo' }
   | { t: 'draw' }
   | { t: 'win'; team: 'home' | 'away' }
   | { t: 'dc'; kind: '1x' | '12' | 'x2' } // double chance
   | { t: 'over'; line: number }
+  | { t: 'under'; line: number }
   | { t: 'teamOver'; team: 'home' | 'away'; line: number };
 
 /** Parse one free-typed leg string to a canonical Leg, or null if unrecognised. */
 export function parseLeg(raw: string): Leg | null {
   const s = raw.trim().toLowerCase();
   if (!s) return null;
+
+  // BTTS: No (2026-10-11) — checked BEFORE plain BTTS, which refuses anything containing 'no'
+  if (/(\bbtts\b|both teams? to score)[^a-z]*no\b|\bng\b/.test(s)) return { t: 'bttsNo' };
 
   // BTTS / both teams to score / gg
   if (/\bbtts\b|both teams? to score|\bgg\b/.test(s) && !/no|\bng\b/.test(s)) return { t: 'btts' };
@@ -42,6 +47,10 @@ export function parseLeg(raw: string): Leg | null {
   let m = /(home|away)\b.*over\s*(\d+(?:\.\d)?)/.exec(s);
   if (m) return { t: 'teamOver', team: m[1] as 'home' | 'away', line: parseFloat(m[2]) };
 
+  // total goals under N (2026-10-11)
+  m = /under\s*(\d+(?:\.\d)?)/.exec(s);
+  if (m) return { t: 'under', line: parseFloat(m[1]) };
+
   // total goals over N
   m = /over\s*(\d+(?:\.\d)?)/.exec(s);
   if (m) return { t: 'over', line: parseFloat(m[1]) };
@@ -55,10 +64,12 @@ export function signature(legs: Leg[]): string {
     .map((l) => {
       switch (l.t) {
         case 'btts': return 'btts';
+        case 'bttsNo': return 'btts:no';
         case 'draw': return 'draw';
         case 'win': return `win:${l.team}`;
         case 'dc': return `dc:${l.kind}`;
         case 'over': return `over:${l.line}`;
+        case 'under': return `under:${l.line}`;
         case 'teamOver': return `tover:${l.team}:${l.line}`;
       }
     })
@@ -77,6 +88,7 @@ function comboSignature(c: Combo): string {
  *  user input. Kept tiny + explicit. */
 function comboLegToTypable(label: string): string {
   const s = label.toLowerCase();
+  if (/both teams to score:\s*no/.test(s)) return 'btts no';
   if (/both teams to score/.test(s)) return 'btts';
   if (/1x|home or draw/.test(s)) return '1x';
   if (/12|home or away/.test(s)) return '12';
@@ -86,6 +98,8 @@ function comboLegToTypable(label: string): string {
   if (/away win/.test(s)) return 'away win';
   let m = /(home|away) total:\s*over\s*(\d+(?:\.\d)?)/.exec(s);
   if (m) return `${m[1]} over ${m[2]}`;
+  m = /under\s*(\d+(?:\.\d)?)/.exec(s);
+  if (m) return `under ${m[1]}`;
   m = /over\s*(\d+(?:\.\d)?)/.exec(s);
   if (m) return `over ${m[1]}`;
   return label;

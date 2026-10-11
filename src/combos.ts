@@ -106,6 +106,13 @@ const yesHomeWin: HedgeToken = { id: 'home-win', label: 'Home Win = Yes', market
 const homeWTN: HedgeToken = { id: 'home-wtn', label: 'Home Win to Nil', market: { kind: 'winToNil', team: 'home' }, pays: ({ h, a }) => h > a && a === 0 };
 const awayWTN: HedgeToken = { id: 'away-wtn', label: 'Away Win to Nil', market: { kind: 'winToNil', team: 'away' }, pays: ({ h, a }) => a > h && h === 0 };
 const exact = (H: number, A: number): HedgeToken => ({ id: `${H}-${A}`, label: `Exact ${H}-${A}`, market: { kind: 'exact', h: H, a: A }, pays: exactP(H, A) });
+// Whole-market O/U and BTTS-Yes tokens (2026-10-11 additions — the deepest Poly soccer books, no thin exact scores).
+const ouTok = (line: string, side: 'over' | 'under'): HedgeToken => ({
+  id: `${side}-${line}`, label: `${side === 'over' ? 'Over' : 'Under'} ${line}`, market: { kind: 'ou', line, side },
+  pays: side === 'over' ? over(parseFloat(line)) : (s) => !over(parseFloat(line))(s),
+});
+const yesBtts: HedgeToken = { id: 'btts', label: 'BTTS = Yes', market: { kind: 'btts', side: 'yes' }, pays: btts };
+const under = (line: number): ScorePred => (s) => !over(line)(s);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // THE LIBRARY — all entries verified LOCKABLE (sound + Poly-buildable). Review!
@@ -308,6 +315,105 @@ export const COMBOS: Combo[] = [
     hedge: [noAwayWin, exact(0, 1), exact(0, 2)],
     note: '3-leg version of AwayWin+O2.5 (Away-O0.5 implied). Same hedge: Away-Win-No + 0-1 + 0-2.',
   },
+
+  // ── 2026-10-11 additions — every hedge is a DISJOINT partition of the lose-region (the library's rule: an overlap is
+  // paid twice; e.g. Home-Win-No + Over 2.5 for HomeWin+U2.5 costs > $1 and can never lock). Where whole markets cannot
+  // partition alone, exact scores ≤ 3-3 or Win-to-Nil fill the gap (both can be overridden per leg with a bookie coef).
+  {
+    id: 'homewin+under2.5',
+    legs: ['Home Win', 'Total Goals: Under 2.5'],
+    legCount: 2,
+    winPred: (s) => homeWin(s) && under(2.5)(s),
+    hedge: [ouTok('2.5', 'over'), exact(0, 0), exact(1, 1), exact(0, 1), exact(0, 2)],
+    note: 'Wins on 1-0 / 2-0. Lose-region = 3+ goals ∪ {0-0, 1-1, 0-1, 0-2}. Buy Over 2.5 + those four exact scores.',
+  },
+  {
+    id: 'awaywin+under2.5',
+    legs: ['Away Win', 'Total Goals: Under 2.5'],
+    legCount: 2,
+    winPred: (s) => awayWin(s) && under(2.5)(s),
+    hedge: [ouTok('2.5', 'over'), exact(0, 0), exact(1, 1), exact(1, 0), exact(2, 0)],
+    note: 'Wins on 0-1 / 0-2. Buy Over 2.5 + 0-0, 1-1, 1-0, 2-0.',
+  },
+  {
+    id: 'draw+under2.5',
+    legs: ['Result: Draw', 'Total Goals: Under 2.5'],
+    legCount: 2,
+    winPred: (s) => draw(s) && under(2.5)(s),
+    hedge: [ouTok('2.5', 'over'), exact(1, 0), exact(0, 1), exact(2, 0), exact(0, 2)],
+    note: 'Wins on 0-0 / 1-1. Buy Over 2.5 + 1-0, 0-1, 2-0, 0-2.',
+  },
+  {
+    id: '1x+under2.5',
+    legs: ['Double Chance: Home or Draw (1X)', 'Total Goals: Under 2.5'],
+    legCount: 2,
+    winPred: (s) => !awayWin(s) && under(2.5)(s),
+    hedge: [ouTok('2.5', 'over'), exact(0, 1), exact(0, 2)],
+    note: 'Loses on 3+ goals or an away win under 3 goals. Buy Over 2.5 + 0-1 + 0-2.',
+  },
+  {
+    id: 'x2+under2.5',
+    legs: ['Double Chance: Draw or Away (X2)', 'Total Goals: Under 2.5'],
+    legCount: 2,
+    winPred: (s) => !homeWin(s) && under(2.5)(s),
+    hedge: [ouTok('2.5', 'over'), exact(1, 0), exact(2, 0)],
+    note: 'Loses on 3+ goals or a home win under 3 goals. Buy Over 2.5 + 1-0 + 2-0.',
+  },
+  {
+    id: '12+btts',
+    legs: ['Double Chance: Home or Away (12, no draw)', 'BTTS: Yes'],
+    legCount: 2,
+    winPred: (s) => !draw(s) && btts(s),
+    hedge: [yesDraw, homeWTN, awayWTN],
+    note: 'Loses on a draw or a win to nil. Buy Draw (Yes) + Home Win-to-Nil + Away Win-to-Nil (Poly often omits WTN — check it is listed).',
+  },
+  {
+    id: '12+over2.5',
+    legs: ['Double Chance: Home or Away (12, no draw)', 'Total Goals: Over 2.5'],
+    legCount: 2,
+    winPred: (s) => !draw(s) && over(2.5)(s),
+    hedge: [yesDraw, exact(1, 0), exact(0, 1), exact(2, 0), exact(0, 2)],
+    note: 'Loses on a draw or a win under 3 goals. Buy Draw (Yes) + 1-0, 0-1, 2-0, 0-2.',
+  },
+  {
+    id: '1x+btts',
+    legs: ['Double Chance: Home or Draw (1X)', 'BTTS: Yes'],
+    legCount: 2,
+    winPred: (s) => !awayWin(s) && btts(s),
+    hedge: [yesAwayWin, exact(0, 0), homeWTN],
+    note: 'Loses on an away win, 0-0, or a home win to nil. Buy Away-Win (Yes) + 0-0 + Home Win-to-Nil.',
+  },
+  {
+    id: 'x2+btts',
+    legs: ['Double Chance: Draw or Away (X2)', 'BTTS: Yes'],
+    legCount: 2,
+    winPred: (s) => !homeWin(s) && btts(s),
+    hedge: [yesHomeWin, exact(0, 0), awayWTN],
+    note: 'Loses on a home win, 0-0, or an away win to nil. Buy Home-Win (Yes) + 0-0 + Away Win-to-Nil.',
+  },
+  {
+    id: 'over2.5+bttsno',
+    legs: ['Total Goals: Over 2.5', 'BTTS: No'],
+    legCount: 2,
+    winPred: (s) => over(2.5)(s) && !btts(s),
+    hedge: [yesBtts, exact(0, 0), exact(1, 0), exact(0, 1), exact(2, 0), exact(0, 2)],
+    note: 'Wins on 3+ goals with one side blank. Buy BTTS (Yes) + 0-0, 1-0, 0-1, 2-0, 0-2.',
+  },
+
+  // ── 3-leg BTTS variants (user 2026-10-11): one team Over 0.5 is IMPLIED by BTTS → identical hedge at a ≥3.00 coef ──
+  ...(['home', 'away'] as const).flatMap((team) => ([
+    { dc: '12', legLabel: 'Double Chance: Home or Away (12, no draw)', hedge: [yesDraw, homeWTN, awayWTN], pred: (s: Score) => !draw(s) },
+    { dc: '1x', legLabel: 'Double Chance: Home or Draw (1X)', hedge: [yesAwayWin, exact(0, 0), homeWTN], pred: (s: Score) => !awayWin(s) },
+    { dc: 'x2', legLabel: 'Double Chance: Draw or Away (X2)', hedge: [yesHomeWin, exact(0, 0), awayWTN], pred: (s: Score) => !homeWin(s) },
+  ]).map((v): Combo => ({
+    id: `${v.dc}+btts+${team}over0.5`,
+    label: `${v.dc.toUpperCase()} + BTTS + ${team === 'home' ? 'Home' : 'Away'} O0.5`,
+    legs: [v.legLabel, 'BTTS: Yes', `${team === 'home' ? 'Home' : 'Away'} Total: Over 0.5`],
+    legCount: 3,
+    winPred: (s) => v.pred(s) && btts(s) && teamOver(team, 0.5)(s),
+    hedge: v.hedge,
+    note: `3-leg version of ${v.dc.toUpperCase()}+BTTS (${team} O0.5 is implied by BTTS) — same hedge, fatter 3-leg coef.`,
+  }))),
 ];
 
 /** Grid bound for verification — well beyond Poly's 3-3, to catch high-score leaks. */
