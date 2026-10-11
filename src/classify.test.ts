@@ -28,9 +28,9 @@ describe('classify — free legs -> combo (order-independent)', () => {
     expect(b.ok && b.combo.id).toBe('btts+over2.5');
   });
 
-  it('classifies Draw + Over 3.5 and the win-to-nil combos', () => {
+  it('classifies Draw + Over 3.5 and the double-chance combos', () => {
     expect((classify(['Draw', 'Over 3.5']) as any).combo?.id).toBe('draw+over3.5');
-    expect((classify(['Home Win', 'BTTS']) as any).combo?.id).toBe('homewin+btts');
+    expect(classify(['Home Win', 'BTTS']).ok).toBe(false); // removed 2026-10-11: its hedge needed Win-to-Nil
     expect((classify(['1X', 'Over 0.5']) as any).combo?.id).toBe('1x+over0.5');
   });
 
@@ -44,9 +44,10 @@ describe('classify — free legs -> combo (order-independent)', () => {
     expect(parseLeg('BTTS No')).toEqual({ t: 'bttsNo' });
     expect(parseLeg('Both teams to score: No')).toEqual({ t: 'bttsNo' });
     expect(parseLeg('BTTS')).toEqual({ t: 'btts' });
-    expect((classify(['Home Win', 'Under 2.5']) as any).combo?.id).toBe('homewin+under2.5');
-    expect((classify(['Over 2.5', 'BTTS No']) as any).combo?.id).toBe('over2.5+bttsno');
-    expect((classify(['12', 'BTTS']) as any).combo?.id).toBe('12+btts');
+    expect((classify(['1X', 'Under 2.5']) as any).combo?.id).toBe('1x+under2.5');
+    // removed 2026-10-11 (hedge needs > 3 Poly tokens) — must now be refused, not mis-matched
+    for (const legs of [['Home Win', 'Under 2.5'], ['Away Win', 'Under 2.5'], ['12', 'Over 2.5'], ['Over 2.5', 'BTTS No']]) expect(classify(legs).ok, legs.join(' + ')).toBe(false);
+    expect(classify(['12', 'BTTS']).ok).toBe(false); // removed 2026-10-11: its hedge needed Win-to-Nil
   });
 
   it('bookie-BLOCKED goal combos are gone from the library (user 2026-10-11: BTTS+O1.5, O1.5+O2.5, team O0.5+O1.5)', () => {

@@ -18,6 +18,11 @@ function partition(c: Combo) {
 describe('combo library — exhaustive per-scoreline verification', () => {
   for (const c of COMBOS) {
     describe(c.id, () => {
+      it('AT MOST 3 Poly hedge tokens and no Win-to-Nil (user 2026-10-11: more is too many bets; WTN is not on Poly)', () => {
+        expect(c.hedge.length).toBeLessThanOrEqual(3);
+        expect(c.hedge.some((t) => t.market.kind === 'winToNil')).toBe(false);
+      });
+
       const { win, lose } = partition(c);
 
       it('COMPLETE: the hedge pays on EVERY losing scoreline', () => {
@@ -68,13 +73,6 @@ describe('spot-check key scorelines against decompositions (human-readable)', ()
     expect(wins(c, 1, 1)).toBe(false); expect(pays(c, 1, 1)).toBe(true);
     expect(wins(c, 0, 0)).toBe(false); expect(pays(c, 0, 0)).toBe(true);
     expect(wins(c, 3, 0)).toBe(false); expect(pays(c, 3, 0)).toBe(true); // not a draw
-  });
-
-  it('HomeWin+BTTS: 2-1 wins, 4-0 loses via Win-to-Nil (not an exact token)', () => {
-    const c = byId['homewin+btts'];
-    expect(wins(c, 2, 1)).toBe(true); expect(pays(c, 2, 1)).toBe(false);
-    expect(wins(c, 4, 0)).toBe(false); expect(pays(c, 4, 0)).toBe(true); // covered by Home-Win-to-Nil, no 4-0 token needed
-    expect(wins(c, 0, 1)).toBe(false); expect(pays(c, 0, 1)).toBe(true); // not home win
   });
 
   it('HomeWin+O2.5: 2-1 WINS (3 goals) so hedge must NOT pay on it (the leak we fixed)', () => {

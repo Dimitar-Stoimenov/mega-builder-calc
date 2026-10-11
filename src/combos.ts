@@ -98,20 +98,12 @@ const noHomeWin: HedgeToken = { id: 'no-home', label: 'Home Win = No', market: {
 const noAwayWin: HedgeToken = { id: 'no-away', label: 'Away Win = No', market: { kind: 'win', team: 'away', side: 'no' }, pays: (s) => !awayWin(s) };
 const yesAwayWin: HedgeToken = { id: 'away-win', label: 'Away Win = Yes', market: { kind: 'win', team: 'away', side: 'yes' }, pays: awayWin };
 const yesHomeWin: HedgeToken = { id: 'home-win', label: 'Home Win = Yes', market: { kind: 'win', team: 'home', side: 'yes' }, pays: homeWin };
-// Win-to-nil = a team wins with a clean sheet. This is the ONLY clean way to cover the
-// "home wins, opponent scores 0" region: it partitions DISJOINTLY from Win-No (one is
-// "home doesn't win", the other is "home wins to nil" — no overlap). We deliberately do
-// NOT use "opponent Under 0.5" — that overlaps Win-No on 0-0, which muddies leg sizing
-// (a trap: easy to mis-size and think you're locked when you're not).
-const homeWTN: HedgeToken = { id: 'home-wtn', label: 'Home Win to Nil', market: { kind: 'winToNil', team: 'home' }, pays: ({ h, a }) => h > a && a === 0 };
-const awayWTN: HedgeToken = { id: 'away-wtn', label: 'Away Win to Nil', market: { kind: 'winToNil', team: 'away' }, pays: ({ h, a }) => a > h && h === 0 };
 const exact = (H: number, A: number): HedgeToken => ({ id: `${H}-${A}`, label: `Exact ${H}-${A}`, market: { kind: 'exact', h: H, a: A }, pays: exactP(H, A) });
 // Whole-market O/U and BTTS-Yes tokens (2026-10-11 additions — the deepest Poly soccer books, no thin exact scores).
 const ouTok = (line: string, side: 'over' | 'under'): HedgeToken => ({
   id: `${side}-${line}`, label: `${side === 'over' ? 'Over' : 'Under'} ${line}`, market: { kind: 'ou', line, side },
   pays: side === 'over' ? over(parseFloat(line)) : (s) => !over(parseFloat(line))(s),
 });
-const yesBtts: HedgeToken = { id: 'btts', label: 'BTTS = Yes', market: { kind: 'btts', side: 'yes' }, pays: btts };
 const under = (line: number): ScorePred => (s) => !over(line)(s);
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -214,45 +206,6 @@ export const COMBOS: Combo[] = [
     note: 'Loses on Not-Away-Win, 0-1, or 0-2 (1-2 is a win — 3 goals). Buy Away-Win-No + 0-1 + 0-2.',
   },
   {
-    id: 'homewin+btts+over2.5',
-    label: 'Home Win + BTTS + O2.5',
-    legs: ['Home Win', 'BTTS: Yes', 'Total Goals: Over 2.5'],
-    legCount: 3,
-    // STRICTLY BETTER than the +O1.5 version: a home win where both score is at minimum
-    // 2-1 = 3 goals, so Over *2.5* is just as implied as Over 1.5 — and it's the fatter
-    // price (~0.5 vs ~0.75). Identical hedge, bigger coef. Prefer this over +O1.5.
-    winPred: (s) => homeWin(s) && btts(s) && over(2.5)(s),
-    hedge: [noHomeWin, homeWTN],
-    note: 'Over 2.5 is implied (win+BTTS ⇒ ≥3 goals) and is a FATTER free leg than O1.5 — prefer this. Same hedge: Home-Win-No + Home-Win-to-Nil.',
-  },
-  {
-    id: 'awaywin+btts+over2.5',
-    label: 'Away Win + BTTS + O2.5',
-    legs: ['Away Win', 'BTTS: Yes', 'Total Goals: Over 2.5'],
-    legCount: 3,
-    winPred: (s) => awayWin(s) && btts(s) && over(2.5)(s),
-    hedge: [noAwayWin, awayWTN],
-    note: 'Over 2.5 is implied (win+BTTS ⇒ ≥3 goals) and is a FATTER free leg than O1.5 — prefer this. Same hedge: Away-Win-No + Away-Win-to-Nil.',
-  },
-  {
-    id: 'homewin+btts',
-    label: 'Home Win + BTTS',
-    legs: ['Home Win', 'BTTS: Yes'],
-    legCount: 2,
-    winPred: (s) => homeWin(s) && btts(s),
-    hedge: [noHomeWin, homeWTN],
-    note: 'Loses on Not-Home-Win or Home Win-to-Nil (disjoint). Buy Home-Win-No + Home-Win-to-Nil.',
-  },
-  {
-    id: 'awaywin+btts',
-    label: 'Away Win + BTTS',
-    legs: ['Away Win', 'BTTS: Yes'],
-    legCount: 2,
-    winPred: (s) => awayWin(s) && btts(s),
-    hedge: [noAwayWin, awayWTN],
-    note: 'Loses on Not-Away-Win or Away Win-to-Nil (disjoint). Buy Away-Win-No + Away-Win-to-Nil.',
-  },
-  {
     id: '1x+over0.5',
     legs: ['Double Chance: Home or Draw (1X)', 'Total Goals: Over 0.5'],
     legCount: 2,
@@ -320,22 +273,6 @@ export const COMBOS: Combo[] = [
   // paid twice; e.g. Home-Win-No + Over 2.5 for HomeWin+U2.5 costs > $1 and can never lock). Where whole markets cannot
   // partition alone, exact scores ≤ 3-3 or Win-to-Nil fill the gap (both can be overridden per leg with a bookie coef).
   {
-    id: 'homewin+under2.5',
-    legs: ['Home Win', 'Total Goals: Under 2.5'],
-    legCount: 2,
-    winPred: (s) => homeWin(s) && under(2.5)(s),
-    hedge: [ouTok('2.5', 'over'), exact(0, 0), exact(1, 1), exact(0, 1), exact(0, 2)],
-    note: 'Wins on 1-0 / 2-0. Lose-region = 3+ goals ∪ {0-0, 1-1, 0-1, 0-2}. Buy Over 2.5 + those four exact scores.',
-  },
-  {
-    id: 'awaywin+under2.5',
-    legs: ['Away Win', 'Total Goals: Under 2.5'],
-    legCount: 2,
-    winPred: (s) => awayWin(s) && under(2.5)(s),
-    hedge: [ouTok('2.5', 'over'), exact(0, 0), exact(1, 1), exact(1, 0), exact(2, 0)],
-    note: 'Wins on 0-1 / 0-2. Buy Over 2.5 + 0-0, 1-1, 1-0, 2-0.',
-  },
-  {
     id: '1x+under2.5',
     legs: ['Double Chance: Home or Draw (1X)', 'Total Goals: Under 2.5'],
     legCount: 2,
@@ -350,46 +287,6 @@ export const COMBOS: Combo[] = [
     winPred: (s) => !homeWin(s) && under(2.5)(s),
     hedge: [ouTok('2.5', 'over'), exact(1, 0), exact(2, 0)],
     note: 'Loses on 3+ goals or a home win under 3 goals. Buy Over 2.5 + 1-0 + 2-0.',
-  },
-  {
-    id: '12+btts',
-    legs: ['Double Chance: Home or Away (12, no draw)', 'BTTS: Yes'],
-    legCount: 2,
-    winPred: (s) => !draw(s) && btts(s),
-    hedge: [yesDraw, homeWTN, awayWTN],
-    note: 'Loses on a draw or a win to nil. Buy Draw (Yes) + Home Win-to-Nil + Away Win-to-Nil (Poly often omits WTN — check it is listed).',
-  },
-  {
-    id: '12+over2.5',
-    legs: ['Double Chance: Home or Away (12, no draw)', 'Total Goals: Over 2.5'],
-    legCount: 2,
-    winPred: (s) => !draw(s) && over(2.5)(s),
-    hedge: [yesDraw, exact(1, 0), exact(0, 1), exact(2, 0), exact(0, 2)],
-    note: 'Loses on a draw or a win under 3 goals. Buy Draw (Yes) + 1-0, 0-1, 2-0, 0-2.',
-  },
-  {
-    id: '1x+btts',
-    legs: ['Double Chance: Home or Draw (1X)', 'BTTS: Yes'],
-    legCount: 2,
-    winPred: (s) => !awayWin(s) && btts(s),
-    hedge: [yesAwayWin, exact(0, 0), homeWTN],
-    note: 'Loses on an away win, 0-0, or a home win to nil. Buy Away-Win (Yes) + 0-0 + Home Win-to-Nil.',
-  },
-  {
-    id: 'x2+btts',
-    legs: ['Double Chance: Draw or Away (X2)', 'BTTS: Yes'],
-    legCount: 2,
-    winPred: (s) => !homeWin(s) && btts(s),
-    hedge: [yesHomeWin, exact(0, 0), awayWTN],
-    note: 'Loses on a home win, 0-0, or an away win to nil. Buy Home-Win (Yes) + 0-0 + Away Win-to-Nil.',
-  },
-  {
-    id: 'over2.5+bttsno',
-    legs: ['Total Goals: Over 2.5', 'BTTS: No'],
-    legCount: 2,
-    winPred: (s) => over(2.5)(s) && !btts(s),
-    hedge: [yesBtts, exact(0, 0), exact(1, 0), exact(0, 1), exact(2, 0), exact(0, 2)],
-    note: 'Wins on 3+ goals with one side blank. Buy BTTS (Yes) + 0-0, 1-0, 0-1, 2-0, 0-2.',
   },
 ];
 

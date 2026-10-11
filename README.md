@@ -14,7 +14,7 @@ No server — the page fetches Polymarket's Gamma API directly (CORS is `*`). De
 ```bash
 npm install
 npm run dev      # http://localhost:5173
-npm test         # 171 tests (combo grid-verification, classify, hedge math)
+npm test         # 134 tests (combo grid-verification, classify, hedge math)
 npm run build    # type-check + static build to dist/
 ```
 
@@ -28,7 +28,7 @@ fee-adjusted cost < `1/coef`, it's guaranteed profit.
   human legs, a `winPred` over scorelines, and the `hedge` tokens (each mapped to a Poly
   market). **`combos.test.ts` checks every combo over every scoreline 0-0 … 10-10**: the
   hedge must pay on *every* losing score (complete), *no* winning score (clean), and use only
-  Poly-buildable tokens (exact scores ≤ 3-3, or whole-market outcomes like BTTS-No / Win-to-Nil).
+  Poly-buildable tokens (exact scores ≤ 3-3, or whole-market outcomes like BTTS-No / Draw-No), at most 3 tokens per hedge, never Win-to-Nil.
 - **`classify.ts`** — turns free-typed legs into a known combo (order-independent). Unknown
   combos fail explicitly — never a guess.
 - **`gamma.ts`** — browser Gamma client. Fetches a league (by tag *or* series — some leagues
@@ -43,7 +43,7 @@ available source per leg.
 
 ### Verified combos (excerpt)
 `BTTS+O2.5 → BTTS-No + 1-1` · `Draw+O3.5 → Draw-No + 0-0 + 1-1` · `Draw+BTTS → Draw-No + 0-0` ·
-`HomeWin+O1.5 → HomeWin-No + 1-0` · `HomeWin+BTTS → HomeWin-No + Home-Win-to-Nil` ·
+`HomeWin+O1.5 → HomeWin-No + 1-0` ·
 `1X+O0.5 → Away-Win + 0-0` · plus the 3-leg coef-rule workarounds. See `combos.ts`.
 
 ## Caveats
