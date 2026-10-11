@@ -46,7 +46,7 @@ describe('classify — free legs -> combo (order-independent)', () => {
     expect(parseLeg('BTTS')).toEqual({ t: 'btts' });
     expect((classify(['Home Win', 'Under 2.5']) as any).combo?.id).toBe('homewin+under2.5');
     expect((classify(['Over 2.5', 'BTTS No']) as any).combo?.id).toBe('over2.5+bttsno');
-    expect((classify(['12', 'BTTS', 'away over 0.5']) as any).combo?.id).toBe('12+btts+awayover0.5');
+    expect((classify(['12', 'BTTS']) as any).combo?.id).toBe('12+btts');
   });
 
   it('bookie-BLOCKED goal combos are gone from the library (user 2026-10-11: BTTS+O1.5, O1.5+O2.5, team O0.5+O1.5)', () => {
@@ -56,6 +56,8 @@ describe('classify — free legs -> combo (order-independent)', () => {
       ['Home Win', 'Over 1.5', 'home over 0.5'], ['Away Win', 'Over 1.5', 'away over 0.5'],
       ['BTTS', 'home over 0.5', 'away over 0.5'], // also blocked (user 2026-10-11); Draw + both teams O0.5 still works
       ['Draw', 'Under 2.5'], // bookie refuses Draw + Under 2.5 (user 2026-10-11)
+      // double chance + BTTS + one team O0.5 — all six refused by the bookie (user 2026-10-11)
+      ...(['12', '1X', 'X2'] as const).flatMap((dc) => [[dc, 'BTTS', 'home over 0.5'], [dc, 'BTTS', 'away over 0.5']]),
     ]) {
       const r = classify(legs);
       expect(r.ok, legs.join(' + ')).toBe(false);

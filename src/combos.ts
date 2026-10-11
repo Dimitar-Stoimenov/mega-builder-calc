@@ -391,21 +391,6 @@ export const COMBOS: Combo[] = [
     hedge: [yesBtts, exact(0, 0), exact(1, 0), exact(0, 1), exact(2, 0), exact(0, 2)],
     note: 'Wins on 3+ goals with one side blank. Buy BTTS (Yes) + 0-0, 1-0, 0-1, 2-0, 0-2.',
   },
-
-  // ── 3-leg BTTS variants (user 2026-10-11): one team Over 0.5 is IMPLIED by BTTS → identical hedge at a ≥3.00 coef ──
-  ...(['home', 'away'] as const).flatMap((team) => ([
-    { dc: '12', legLabel: 'Double Chance: Home or Away (12, no draw)', hedge: [yesDraw, homeWTN, awayWTN], pred: (s: Score) => !draw(s) },
-    { dc: '1x', legLabel: 'Double Chance: Home or Draw (1X)', hedge: [yesAwayWin, exact(0, 0), homeWTN], pred: (s: Score) => !awayWin(s) },
-    { dc: 'x2', legLabel: 'Double Chance: Draw or Away (X2)', hedge: [yesHomeWin, exact(0, 0), awayWTN], pred: (s: Score) => !homeWin(s) },
-  ]).map((v): Combo => ({
-    id: `${v.dc}+btts+${team}over0.5`,
-    label: `${v.dc.toUpperCase()} + BTTS + ${team === 'home' ? 'Home' : 'Away'} O0.5`,
-    legs: [v.legLabel, 'BTTS: Yes', `${team === 'home' ? 'Home' : 'Away'} Total: Over 0.5`],
-    legCount: 3,
-    winPred: (s) => v.pred(s) && btts(s) && teamOver(team, 0.5)(s),
-    hedge: v.hedge,
-    note: `3-leg version of ${v.dc.toUpperCase()}+BTTS (${team} O0.5 is implied by BTTS) — same hedge, fatter 3-leg coef.`,
-  }))),
 ];
 
 /** Grid bound for verification — well beyond Poly's 3-3, to catch high-score leaks. */
