@@ -336,14 +336,6 @@ export const COMBOS: Combo[] = [
     note: 'Wins on 0-1 / 0-2. Buy Over 2.5 + 0-0, 1-1, 1-0, 2-0.',
   },
   {
-    id: 'draw+under2.5',
-    legs: ['Result: Draw', 'Total Goals: Under 2.5'],
-    legCount: 2,
-    winPred: (s) => draw(s) && under(2.5)(s),
-    hedge: [ouTok('2.5', 'over'), exact(1, 0), exact(0, 1), exact(2, 0), exact(0, 2)],
-    note: 'Wins on 0-0 / 1-1. Buy Over 2.5 + 1-0, 0-1, 2-0, 0-2.',
-  },
-  {
     id: '1x+under2.5',
     legs: ['Double Chance: Home or Draw (1X)', 'Total Goals: Under 2.5'],
     legCount: 2,
